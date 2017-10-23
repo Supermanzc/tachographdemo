@@ -1,14 +1,8 @@
 package com.otvcloud.tachographdemo.bean.dao;
 
-import com.otvcloud.tachographdemo.TachographManager;
 import com.otvcloud.tachographdemo.bean.Tachograph;
-import com.otvcloud.tachographdemo.util.FileSizeUtil;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-
-import static com.orm.SugarRecord.find;
 
 /**
  * Created by android_jy on 2017/10/23.
@@ -21,7 +15,7 @@ public class TachographDao {
     private TachographDao() {
     }
 
-    public static final TachographDao getInstance() {
+    public static TachographDao getInstance() {
         if (tachograph == null) {
             tachograph = new TachographDao();
         }
