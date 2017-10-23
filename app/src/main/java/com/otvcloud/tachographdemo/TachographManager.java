@@ -3,8 +3,13 @@ package com.otvcloud.tachographdemo;
 import android.os.Environment;
 import android.util.Log;
 
+import com.otvcloud.tachographdemo.bean.Tachograph;
+import com.otvcloud.tachographdemo.bean.dao.TachographDao;
+import com.otvcloud.tachographdemo.util.FileSizeUtil;
+
 import java.io.File;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Created by android_jy on 2017/10/20.
@@ -13,6 +18,7 @@ public class TachographManager {
     private static final String TAG = TachographManager.class.getSimpleName();
     private static TachographManager manager;
     private static String LOCATION_FILE_PATH = "tachographFile";
+    private static double MAX_SIZE = 30; //最大空间为M
 
     private TachographManager() {
     }
@@ -39,6 +45,25 @@ public class TachographManager {
             path = dir + "/" + getDate() + ".mp4";
         }
         return path;
+    }
+
+    /**
+     * 检测当前记录的空间，自动进行清理
+     */
+    public static void checkRecorderSpace() {
+        double fileOrFilesSize = FileSizeUtil.getFileOrFilesSize(getLocationFilePath(), FileSizeUtil.SIZETYPE_MB);
+        if (fileOrFilesSize > MAX_SIZE) {
+            //需要删除的信息获取
+            List<Tachograph> deleteTachographs = TachographDao.getInstance().findAllTachograph(3, "asc");
+            if (deleteTachographs == null) {
+                FileSizeUtil.deleteDirectory(getLocationFilePath());
+            } else {
+                for (Tachograph tachograph : deleteTachographs) {
+                    FileSizeUtil.deleteFile(tachograph.getFilePath());
+                    tachograph.delete();
+                }
+            }
+        }
     }
 
     /**

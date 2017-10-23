@@ -4,8 +4,13 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.otvcloud.tachographdemo.bean.Tachograph;
+import com.otvcloud.tachographdemo.bean.dao.TachographDao;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -22,5 +27,11 @@ public class ExampleInstrumentedTest {
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         assertEquals("com.otvcloud.tachographdemo", appContext.getPackageName());
+    }
+
+    @Test
+    public void findAll(){
+        List<Tachograph> tachographList = TachographDao.getInstance().findAllTachograph(5,"desc");
+        System.out.print("findAll:" + tachographList.size() + "");
     }
 }

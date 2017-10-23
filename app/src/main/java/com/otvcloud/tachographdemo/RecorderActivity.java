@@ -11,6 +11,8 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.otvcloud.tachographdemo.bean.dao.TachographDao;
+
 /**
  * Created by android_jy on 2017/10/19.
  */
@@ -28,6 +30,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
     private SurfaceHolder mSurfaceHolder;
     private int cutTime = 1 * 10;
     private int mCameraType = 0; //当前设置头类型,0:后置/1:前置
+    private String mRecorderFilePath = "";
 
     private static final int TIME_SQ = 100;
     private Handler mHandler = new Handler() {
@@ -39,6 +42,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
                     //如果当前时间大于切割时间时
                     if (textTime > cutTime) {
                         textTime = 0;
+                        //结束的时候要进行数据库操作
                         stopRecorder();
                         startRecorder();
                         sendEmptyMessage(msg.what);
@@ -99,7 +103,8 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
             mRecorder.setOrientationHint(90);
             //设置记录会话的最大持续时间（毫秒）
             mRecorder.setMaxDuration(30 * 1000);
-            mRecorder.setOutputFile(TachographManager.getRecorderPath());
+            mRecorderFilePath = TachographManager.getRecorderPath();
+            mRecorder.setOutputFile(mRecorderFilePath);
 
             mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
             mRecorder.prepare();
@@ -114,16 +119,14 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
     }
 
     private void stopRecorder() {
-        try {
-            mHandler.removeMessages(TIME_SQ);
-            if (mRecorder != null) {
-                mRecorder.stop();
-                mRecorder.reset();
-                mRecorder.release();
-                mRecorder = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        TachographManager.checkRecorderSpace();
+        TachographDao.getInstance().save(mRecorderFilePath, System.currentTimeMillis() + "");
+        mHandler.removeMessages(TIME_SQ);
+        if (mRecorder != null) {
+            mRecorder.stop();
+            mRecorder.reset();
+            mRecorder.release();
+            mRecorder = null;
         }
     }
 
