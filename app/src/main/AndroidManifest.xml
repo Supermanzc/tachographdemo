@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.otvcloud.tachographdemo">
 
+    <!-- begin: baidu speech sdk  权限 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- end: baidu speech sdk  权限 -->
+
     <!--硬件支持-->
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
@@ -29,7 +35,20 @@
 
         <activity
             android:name=".RecorderActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.otvcloud.tachographdemo.intent.category.SAMPLE_CODE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".RecognizerWakeActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="com.otvcloud.tachographdemo.intent.category.SAMPLE_CODE" />
+            </intent-filter>
+        </activity>
 
         <meta-data
             android:name="DATABASE"
@@ -43,6 +62,21 @@
         <meta-data
             android:name="DOMAIN_PACKAGE_NAME"
             android:value="com.otvcloud.tachographdemo" />
+
+        <!-- 请填写真实的APP_ID API_KEY SECRET_KEY-->
+        <meta-data
+            android:name="com.baidu.speech.APP_ID"
+            android:value="10275392" />
+        <meta-data
+            android:name="com.baidu.speech.API_KEY"
+            android:value="TbQPKwtFGNoqZ138VbeW076G" />
+        <meta-data
+            android:name="com.baidu.speech.SECRET_KEY"
+            android:value="xlEaM0WQlZ88y8cvn5IiKAQCvTg8gQYE" />
+
+        <service
+            android:name="com.baidu.speech.VoiceRecognitionService"
+            android:exported="false" />
     </application>
 
 </manifest>

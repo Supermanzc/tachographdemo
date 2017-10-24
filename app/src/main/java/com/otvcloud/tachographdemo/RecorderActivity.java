@@ -1,23 +1,44 @@
 package com.otvcloud.tachographdemo;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.baidu.speech.asr.SpeechConstant;
+import com.otvcloud.tachographdemo.baidu.control.MyRecognizer;
+import com.otvcloud.tachographdemo.baidu.control.MyWakeup;
+import com.otvcloud.tachographdemo.baidu.recognization.IStatus;
+import com.otvcloud.tachographdemo.baidu.recognization.MessageStatusRecogListener;
+import com.otvcloud.tachographdemo.baidu.recognization.PidBuilder;
+import com.otvcloud.tachographdemo.baidu.recognization.StatusRecogListener;
+import com.otvcloud.tachographdemo.baidu.wakeup.IWakeupListener;
+import com.otvcloud.tachographdemo.baidu.wakeup.RecogWakeupListener;
+import com.otvcloud.tachographdemo.baidu.wakeup.WakeupParams;
 import com.otvcloud.tachographdemo.bean.dao.TachographDao;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Created by android_jy on 2017/10/19.
  */
 
-public class RecorderActivity extends Activity implements SurfaceHolder.Callback {
+public class RecorderActivity extends Activity implements SurfaceHolder.Callback, IStatus {
 
     public final static int VIDEO_WIDTH = 1280;
     public final static int VIDEO_HEIGHT = 720;
@@ -56,9 +77,44 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         }
     };
 
+    /**
+     * 识别控制器，使用MyRecognizer控制识别的流程
+     */
+    protected MyRecognizer myRecognizer;
+    protected MyWakeup myWakeup;
+    /**
+     * 0: 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
+     * >0 : 方案2： 唤醒词说完后，中间有停顿，然后接句子。推荐4个字 1500ms
+     * <p>
+     * backTrackInMs 最大 15000，即15s
+     */
+    private int backTrackInMs = 1500;
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == STATUS_WAKEUP_SUCCESS) {
+                // 此处 开始正常识别流程
+                Map<String, Object> params = new LinkedHashMap<String, Object>();
+                params.put(SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
+                params.put(SpeechConstant.VAD, SpeechConstant.VAD_DNN);
+                int pid = PidBuilder.create().model(PidBuilder.INPUT).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
+                params.put(SpeechConstant.PID, pid);
+                if (backTrackInMs > 0) { // 方案1， 唤醒词说完后，直接接句子，中间没有停顿。
+                    params.put(SpeechConstant.AUDIO_MILLS, System.currentTimeMillis() - backTrackInMs);
+                }
+                myRecognizer.cancel();
+                myRecognizer.start(params);
+            } else if (msg.what == STATUS_FINISHED) {
+                Log.e(TAG, "语音识别结束" + msg.obj);
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        setStrictMode();
         setContentView(R.layout.activity_recorder);
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         textView = (TextView) findViewById(R.id.text);
@@ -66,7 +122,41 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         holder.addCallback(this);
         // setType必须设置，要不出错.
         holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        initPermission();
+        initRecog();
     }
+
+    /**
+     * 初始化语音和唤醒服务
+     */
+    protected void initRecog() {
+        // 初始化识别引擎
+        StatusRecogListener recogListener = new MessageStatusRecogListener(handler);
+        myRecognizer = new MyRecognizer(this, recogListener);
+
+        IWakeupListener listener = new RecogWakeupListener(handler);
+        myWakeup = new MyWakeup(this, listener);
+        start();
+    }
+
+    /**
+     * 开始语音
+     */
+    private void start() {
+        WakeupParams wakeupParams = new WakeupParams(this);
+        Map<String, Object> params = wakeupParams.fetch();
+        myWakeup.start(params);
+    }
+
+
+    /**
+     * 停止语音
+     */
+    protected void stop() {
+        myWakeup.stop();
+        myRecognizer.stop();
+    }
+
 
     /**
      * 开始记录
@@ -79,7 +169,8 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         try {
             mRecorder.setCamera(mCamera);
             // 这两项需要放在setOutputFormat之前
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+
+//            mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
             mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
             // Set output file format
@@ -94,7 +185,8 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
             // 这两项需要放在setOutputFormat之后
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 //            mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+
+//            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
             mRecorder.setVideoSize(640, 480);
@@ -220,5 +312,54 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         super.onDestroy();
         stopRecorder();
         releaseCamera();
+
+        myWakeup.release();
+        myRecognizer.release();
+    }
+
+    /**
+     * android 6.0 以上需要动态申请权限
+     */
+    private void initPermission() {
+        String permissions[] = {Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.INTERNET,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+
+        ArrayList<String> toApplyList = new ArrayList<String>();
+
+        for (String perm : permissions) {
+            if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, perm)) {
+                toApplyList.add(perm);
+                //进入到这里代表没有权限.
+
+            }
+        }
+        String tmpList[] = new String[toApplyList.size()];
+        if (!toApplyList.isEmpty()) {
+            ActivityCompat.requestPermissions(this, toApplyList.toArray(tmpList), 123);
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        // 此处为android 6.0以上动态授权的回调，用户自行实现。
+    }
+
+    private void setStrictMode() {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .build());
+        StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .penaltyDeath()
+                .build());
+
     }
 }
