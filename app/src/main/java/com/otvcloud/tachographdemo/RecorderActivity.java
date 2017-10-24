@@ -107,6 +107,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
                 myRecognizer.start(params);
             } else if (msg.what == STATUS_FINISHED) {
                 Log.e(TAG, "语音识别结束" + msg.obj);
+                TachographManager.getInstance().checkRecognizer((String) msg.obj);
             }
         }
     };
@@ -195,7 +196,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
             mRecorder.setOrientationHint(90);
             //设置记录会话的最大持续时间（毫秒）
             mRecorder.setMaxDuration(30 * 1000);
-            mRecorderFilePath = TachographManager.getRecorderPath();
+            mRecorderFilePath = TachographManager.getInstance().getRecorderPath();
             mRecorder.setOutputFile(mRecorderFilePath);
 
             mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
@@ -211,7 +212,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
     }
 
     private void stopRecorder() {
-        TachographManager.checkRecorderSpace();
+        TachographManager.getInstance().checkRecorderSpace();
         TachographDao.getInstance().save(mRecorderFilePath, System.currentTimeMillis() + "");
         mHandler.removeMessages(TIME_SQ);
         if (mRecorder != null) {
