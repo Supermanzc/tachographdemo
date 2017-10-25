@@ -179,6 +179,7 @@ public class TachographManager {
                 }
                 moviesList.clear();
                 fileList.clear();
+
             }
         }).start();
     }

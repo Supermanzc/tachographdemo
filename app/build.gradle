@@ -29,5 +29,6 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.github.satyan:sugar:1.5'
     compile files('libs/bdasr_V3_20170801_60da871.jar')
-    compile files('libs/isoviewer-1.0-RC-35.jar')
+    compile files('libs/isoparser-1.0.1.jar')
+    compile files('libs/aspectjrt-1.8.9.jar')
 }
