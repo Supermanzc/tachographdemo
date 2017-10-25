@@ -95,7 +95,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         public void handleMessage(Message msg) {
             if (msg.what == STATUS_WAKEUP_SUCCESS) {
                 // 此处 开始正常识别流程
-                Map<String, Object> params = new LinkedHashMap<String, Object>();
+                Map<String, Object> params = new LinkedHashMap<>();
                 params.put(SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
                 params.put(SpeechConstant.VAD, SpeechConstant.VAD_DNN);
                 int pid = PidBuilder.create().model(PidBuilder.INPUT).toPId(); //如识别短句，不需要需要逗号，将PidBuilder.INPUT改为搜索模型PidBuilder.SEARCH
@@ -106,7 +106,6 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
                 myRecognizer.cancel();
                 myRecognizer.start(params);
             } else if (msg.what == STATUS_FINISHED) {
-                Log.e(TAG, "语音识别结束" + msg.obj);
                 TachographManager.getInstance().checkRecognizer((String) msg.obj);
             }
         }
@@ -245,8 +244,8 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
             if (type == 0) {
                 //基本是都支持这个比例
                 parameters.setPreviewSize(VIDEO_WIDTH, VIDEO_HEIGHT);
-//                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);//连续对焦
-//                mCamera.cancelAutoFocus();// 如果要实现连续的自动对焦，这一句必须加上
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);//连续对焦
+                mCamera.cancelAutoFocus();// 如果要实现连续的自动对焦，这一句必须加上
             }
             mCamera.setParameters(parameters);
             mCamera.setDisplayOrientation(90);

@@ -28,7 +28,8 @@ import java.util.List;
 public class TachographManager {
     private static final String TAG = TachographManager.class.getSimpleName();
     private static TachographManager manager;
-    private static String LOCATION_FILE_PATH = "tachographFile";
+    private static String LOCATION_FILE_PATH = "tachographFile/file";
+    private static String LOCATION_CACHE_PATH = "tachographFile/cache";
     private static double MAX_SIZE = 30; //最大空间为M
 
     private TachographManager() {
@@ -47,7 +48,7 @@ public class TachographManager {
      * @return
      */
     public String getRecorderPath() {
-        String path = getLocationFilePath();
+        String path = getLocationFilePath(LOCATION_FILE_PATH);
         if (path != null) {
             File dir = new File(path);
             if (!dir.exists()) {
@@ -62,12 +63,12 @@ public class TachographManager {
      * 检测当前记录的空间，自动进行清理
      */
     public void checkRecorderSpace() {
-        double fileOrFilesSize = FileSizeUtil.getFileOrFilesSize(getLocationFilePath(), FileSizeUtil.SIZETYPE_MB);
+        double fileOrFilesSize = FileSizeUtil.getFileOrFilesSize(getLocationFilePath(LOCATION_FILE_PATH), FileSizeUtil.SIZETYPE_MB);
         if (fileOrFilesSize > MAX_SIZE) {
             //需要删除的信息获取
             List<Tachograph> deleteTachographs = TachographDao.getInstance().findAllTachograph(3, "asc");
             if (deleteTachographs == null) {
-                FileSizeUtil.deleteDirectory(getLocationFilePath());
+                FileSizeUtil.deleteDirectory(getLocationFilePath(LOCATION_FILE_PATH));
             } else {
                 for (Tachograph tachograph : deleteTachographs) {
                     FileSizeUtil.deleteFile(tachograph.getFilePath());
@@ -99,15 +100,20 @@ public class TachographManager {
     /**
      * 获取当前的文件路径
      *
+     * @param location 路径
      * @return
      */
-    public String getLocationFilePath() {
+    public String getLocationFilePath(String location) {
         File sdDir = null;
         boolean sdCardExist = Environment.getExternalStorageState()
                 .equals(android.os.Environment.MEDIA_MOUNTED); // 判断sd卡是否存在
         if (sdCardExist) {
             sdDir = Environment.getExternalStorageDirectory();// 获取跟目录
-            return sdDir.toString() + "/" + LOCATION_FILE_PATH;
+            File file = new File(sdDir.toString() + "/" + location);
+            if (!file.exists()) {
+                file.mkdir();
+            }
+            return sdDir.toString() + "/" + location;
         }
         return null;
     }
@@ -118,14 +124,18 @@ public class TachographManager {
      * @param msg
      */
     public void checkRecognizer(String msg) {
+        Log.e(TAG, "语音识别结束---checkRecognizer= " + msg);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 List<Tachograph> tachographs = TachographDao.getInstance().findAllTachograph(3, "desc");
+                if (tachographs == null || tachographs.size() <= 1) {
+                    return;
+                }
                 List<String> fileList = new ArrayList<String>();
                 List<Movie> moviesList = new LinkedList<Movie>();
-                for (Tachograph tachograph : tachographs) {
-                    fileList.add(tachograph.getFilePath());
+                for (int i = tachographs.size() - 1; i >= 0; i--) {
+                    fileList.add(tachographs.get(i).getFilePath());
                 }
                 try {
                     for (String file : fileList) {
@@ -160,7 +170,7 @@ public class TachographManager {
                 }
                 Container out = new DefaultMp4Builder().build(result);
                 try {
-                    FileChannel fc = new RandomAccessFile(getLocationFilePath() + "/output.mp4", "rw").getChannel();
+                    FileChannel fc = new RandomAccessFile(getLocationFilePath(LOCATION_CACHE_PATH) + "/output.mp4", "rw").getChannel();
                     out.writeContainer(fc);
                     fc.close();
                 } catch (Exception e) {
