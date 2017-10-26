@@ -27,6 +27,9 @@ public class FileSizeUtil {
         File file = new File(filePath);
         long blockSize = 0;
         try {
+            if (!file.exists()) {
+                file.mkdirs();
+            }
             if (file.isDirectory()) {
                 blockSize = getFileSizes(file);
             } else {
@@ -93,8 +96,9 @@ public class FileSizeUtil {
 
     /**
      * 删除文件夹以及目录下的文件
-     * @param   filePath 被删除目录的文件路径
-     * @return  目录删除成功返回true，否则返回false
+     *
+     * @param filePath 被删除目录的文件路径
+     * @return 目录删除成功返回true，否则返回false
      */
     public static boolean deleteDirectory(String filePath) {
         boolean flag = false;

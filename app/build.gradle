@@ -31,4 +31,7 @@ dependencies {
     compile files('libs/bdasr_V3_20170801_60da871.jar')
     compile files('libs/isoparser-1.0.1.jar')
     compile files('libs/aspectjrt-1.8.9.jar')
+    compile 'com.squareup.retrofit2:retrofit:2.1.0'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
 }

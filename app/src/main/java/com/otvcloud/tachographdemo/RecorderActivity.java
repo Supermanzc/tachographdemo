@@ -52,6 +52,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
     private int cutTime = 1 * 10;
     private int mCameraType = 0; //当前设置头类型,0:后置/1:前置
     private String mRecorderFilePath = "";
+    private static RecorderActivity mRecorderActivity;
 
     private static final int TIME_SQ = 100;
     private Handler mHandler = new Handler() {
@@ -111,11 +112,16 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         }
     };
 
+    public static RecorderActivity getInstance(){
+        return mRecorderActivity;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        setStrictMode();
         setContentView(R.layout.activity_recorder);
+        mRecorderActivity = this;
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         textView = (TextView) findViewById(R.id.text);
         SurfaceHolder holder = mSurfaceView.getHolder();
