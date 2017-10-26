@@ -45,7 +45,7 @@ public class TachographManager {
     private static TachographManager manager;
     private static String LOCATION_FILE_PATH = "tachographFile/file";
     private static String LOCATION_CACHE_PATH = "tachographFile/cache";
-    private static double MAX_SIZE = 30; //最大空间为M
+    private static double MAX_SIZE = 60; //最大空间为M
     private final int DEFAULT_TIMEOUT = 10 * 1000;
 
     private TachographManager() {

@@ -112,7 +112,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         }
     };
 
-    public static RecorderActivity getInstance(){
+    public static RecorderActivity getInstance() {
         return mRecorderActivity;
     }
 
@@ -195,10 +195,10 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
 //            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
-            mRecorder.setVideoSize(640, 480);
+            mRecorder.setVideoSize(VIDEO_WIDTH, VIDEO_HEIGHT);
             mRecorder.setVideoFrameRate(30);
-            mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
-            mRecorder.setOrientationHint(90);
+            mRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
+            mRecorder.setOrientationHint(0);
             //设置记录会话的最大持续时间（毫秒）
             mRecorder.setMaxDuration(30 * 1000);
             mRecorderFilePath = TachographManager.getInstance().getRecorderPath();
@@ -327,11 +327,13 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
      * android 6.0 以上需要动态申请权限
      */
     private void initPermission() {
-        String permissions[] = {Manifest.permission.RECORD_AUDIO,
+        String permissions[] = {
+                Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.INTERNET,
                 Manifest.permission.READ_PHONE_STATE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
         };
 
         ArrayList<String> toApplyList = new ArrayList<String>();
