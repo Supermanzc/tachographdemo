@@ -121,6 +121,7 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
         super.onCreate(savedInstanceState);
 //        setStrictMode();
         setContentView(R.layout.activity_recorder);
+        TachographManager.getInstance().checkRecorderConfigure();
         mRecorderActivity = this;
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceview);
         textView = (TextView) findViewById(R.id.text);

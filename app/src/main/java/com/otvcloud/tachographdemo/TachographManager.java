@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.baidu.speech.core.LogUtil;
 import com.coremedia.iso.boxes.Container;
 import com.google.gson.Gson;
 import com.googlecode.mp4parser.authoring.Movie;
@@ -43,8 +44,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class TachographManager {
     private static final String TAG = TachographManager.class.getSimpleName();
     private static TachographManager manager;
-    private static String LOCATION_FILE_PATH = "tachographFile/file";
-    private static String LOCATION_CACHE_PATH = "tachographFile/cache";
+    private static String LOCATION_BASE_PATH = "tachographFile";
+    private static String LOCATION_FILE_PATH = LOCATION_BASE_PATH + "/file";
+    private static String LOCATION_CACHE_PATH = LOCATION_BASE_PATH + "/cache";
     private static double MAX_SIZE = 60; //最大空间为M
     private final int DEFAULT_TIMEOUT = 10 * 1000;
 
@@ -73,6 +75,18 @@ public class TachographManager {
             path = dir + "/" + getDate() + ".mp4";
         }
         return path;
+    }
+
+    /**
+     * 检测当前数据库是否有保留信息，如果没有，把本地文件内容删除
+     */
+    public void checkRecorderConfigure() {
+        List<Tachograph> tachographs = TachographDao.getInstance().findAllTachograph(3, "desc");
+        //删除当前文件信息
+        if (tachographs == null || tachographs.size() == 0) {
+            Log.e(TAG, "checkRecorderConfigure---------------------------");
+            FileSizeUtil.deleteDirWithFile(new File(getLocationFilePath(LOCATION_BASE_PATH)));
+        }
     }
 
     /**
@@ -250,6 +264,10 @@ public class TachographManager {
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(client)
                 .build();
+
+        if (RecorderActivity.getInstance() != null) {
+            Toast.makeText(RecorderActivity.getInstance(), "开始上传...", Toast.LENGTH_SHORT).show();
+        }
 
         TestService testService = retrofit.create(TestService.class);
         // 获取文件真实的内容类型
