@@ -266,7 +266,12 @@ public class TachographManager {
                 .build();
 
         if (RecorderActivity.getInstance() != null) {
-            Toast.makeText(RecorderActivity.getInstance(), "开始上传...", Toast.LENGTH_SHORT).show();
+            RecorderActivity.getInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(RecorderActivity.getInstance(), "开始上传...", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
 
         TestService testService = retrofit.create(TestService.class);

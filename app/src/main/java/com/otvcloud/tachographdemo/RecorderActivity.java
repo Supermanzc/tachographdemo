@@ -11,7 +11,6 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
@@ -32,7 +31,6 @@ import com.otvcloud.tachographdemo.bean.dao.TachographDao;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * Created by android_jy on 2017/10/19.
@@ -198,8 +196,8 @@ public class RecorderActivity extends Activity implements SurfaceHolder.Callback
 
             mRecorder.setVideoSize(VIDEO_WIDTH, VIDEO_HEIGHT);
             mRecorder.setVideoFrameRate(30);
-            mRecorder.setVideoEncodingBitRate(5 * 1024 * 1024);
-            mRecorder.setOrientationHint(0);
+            mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
+            mRecorder.setOrientationHint(90);
             //设置记录会话的最大持续时间（毫秒）
             mRecorder.setMaxDuration(30 * 1000);
             mRecorderFilePath = TachographManager.getInstance().getRecorderPath();
